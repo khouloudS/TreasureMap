@@ -30,10 +30,36 @@ class Program
         if (gameData != null)
         {
             DisplayMap(gameData.Map);
+            Console.WriteLine($"{gameData.MaxPath}");
+
+            while (gameData.MaxPath != 0)
+            {
+                foreach (var adventurer in gameData.Adventurers)
+                {
+                    if (adventurer.Path.Length > 0)
+                    {
+                        var move = adventurer.Path[0].ToString();
+                        adventurer.Path= adventurer.Path.Substring(1); // the first char was already used
+                        if (move == "A")
+                        {
+                            if (IsValidMovement(adventurer, gameData.Map))
+                            {
+                                UpdateCells(adventurer, gameData.Map);
+                            }
+                        }
+                        else
+                        {
+                            adventurer.Orientation = directionLookup[adventurer.Orientation][move];
+                        }
+                    }
+                }
+
+                gameData.MaxPath--;
+            }
 
             foreach (var adventurer in gameData.Adventurers)
             {
-                Console.WriteLine($"{adventurer.Name} , ({adventurer.Row}, {adventurer.Col}), {adventurer.TotalTreasure}");
+                Console.WriteLine($"A - {adventurer.Name} - {adventurer.Col} - {adventurer.Row} - {adventurer.Orientation} - {adventurer.TotalTreasure}");
             }
         }
     }
@@ -49,14 +75,17 @@ class Program
             {
                 string line;
                 Cell[,] map = null;
-                
+                int maxPath = 0;
+
                 List<Adventurer> adventurersList = new List<Adventurer>();
                 int col = 0;
                 int row = 0;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    var t = line[0];
-                    if (line[0] == '#') continue;
+                    line = line.Trim();
+
+                    if (string.IsNullOrEmpty(line) || line[0] == '#')
+                        continue;
                     string[] parts = line.Split(" - ");
 
                     switch (parts[0])
@@ -98,6 +127,7 @@ class Program
                                     adventurer.TotalTreasure++;   // Adventurer collects one treasure
                                     currentCell.TreasureCount--;  // Cell loses one treasure
                                 }
+                                if (maxPath < adventurer.Path.Length) maxPath = adventurer.Path.Length;
                                 adventurersList.Add(adventurer);
                             }
                             break;
@@ -106,7 +136,7 @@ class Program
                     }
                 }
 
-                return new GameMap(map, adventurersList);
+                return new GameMap(map, adventurersList, maxPath);
             }
         }
         catch (Exception ex)
@@ -125,7 +155,7 @@ class Program
 
         for (int row = 0; row < rows; row++)
         {
-            for (int col = 0; col < cols; col++) 
+            for (int col = 0; col < cols; col++)
             {
                 map[row, col] = new Cell();
             }
@@ -149,6 +179,69 @@ class Program
         return false;
     }
 
+
+    static bool IsValidMovement(Adventurer adventurer, Cell[,] map)
+    {
+        // check if we don't go outside the map
+
+        var (nextCol, nextRow) = GetNextCell(adventurer.Orientation, adventurer.Col, adventurer.Row);
+
+        if (nextCol < 0 || nextCol >= map.GetLength(1) || nextRow < 0 || nextRow >= map.GetLength(0)) return false;
+        // check we don't hit a mountain 
+        if (map[nextRow, nextCol].Type == CellType.Mountain) return false;
+        // check we move to a cell that has an adventurer
+        if (map[nextRow, nextCol].HasAdventurer) return false;
+        return true;
+    }
+
+    static (int, int) GetNextCell(string orientation, int col, int row)
+    {
+        int nextCol = 0;
+        int nextRow = 0;
+
+        if (orientation == "N")
+        {
+            nextCol = col;
+            nextRow = row-1;
+        }
+        else if (orientation == "S")
+        {
+            nextCol = col;
+            nextRow = row+1;
+        }
+        else if (orientation == "E")
+        {
+            nextCol = col+1;
+            nextRow = row;
+        }
+        else
+        {
+            nextCol = col-1;
+            nextRow = row;
+        }
+        return (nextCol, nextRow);
+    }
+
+    static void UpdateCells(Adventurer adventurer, Cell[,] map)
+    {
+        // Update current cell state
+        map[adventurer.Row, adventurer.Col].HasAdventurer = false;
+
+        var (nextCol, nextRow) = GetNextCell(adventurer.Orientation, adventurer.Col, adventurer.Row);
+        // Update destination cell state
+        map[nextRow, nextCol].HasAdventurer = true;
+
+        // In case of treasure cell, update adventurer and cell
+        if (map[nextRow, nextCol].Type == CellType.Treasure && map[nextRow, nextCol].TreasureCount > 0)
+        {
+            adventurer.TotalTreasure++;
+            map[nextRow, nextCol].TreasureCount--;
+        }
+        // update adventurer position
+        adventurer.Row = nextRow;
+        adventurer.Col = nextCol;
+    }
+
     /// <summary>
     /// Displays the map.
     /// </summary>
@@ -163,5 +256,5 @@ class Program
             Console.WriteLine();
         }
     }
-    
+
 }
