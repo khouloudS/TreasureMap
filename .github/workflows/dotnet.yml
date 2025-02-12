@@ -31,5 +31,6 @@ jobs:
       working-directory: TreasureMap.Tests
       shell: bash
       run: |
-        ls -R
+        curdir=$(pwd)
+        echo "$curdir"
         dotnet test --no-build --verbosity normal --logger "trx"
