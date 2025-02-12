@@ -30,4 +30,6 @@ jobs:
     - name: Test
       working-directory: TreasureMap.Tests
       shell: bash
-      run: dotnet test --no-build --verbosity normal --logger "trx"
+      run: |
+        pwd
+        dotnet test --no-build --verbosity normal --logger "trx"
