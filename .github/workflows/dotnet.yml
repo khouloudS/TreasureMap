@@ -26,3 +26,4 @@ jobs:
     - name: Test
       working-directory: TreasureMap.Tests
       run: dotnet test --no-build --verbosity normal --logger "trx"
+
