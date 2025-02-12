@@ -31,12 +31,13 @@ jobs:
       working-directory: TreasureMap/TreasureMap.Tests
       shell: bash
       run: dotnet test --no-build --verbosity normal --logger "trx"
-    - name: Publish Executable
+    - name: Publish Executable for Windows
       working-directory: TreasureMap
       run: |
-        dotnet publish --configuration Release --output ./publish --runtime linux-x64 --self-contained true
+        dotnet publish --configuration Release --output ./publish --runtime win-x64 --self-contained true
     - name: Upload Executable Artifact
       uses: actions/upload-artifact@v4
       with:
         name: published-executable
         path: TreasureMap/publish/
+
