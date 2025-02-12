@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TreasureMap.Constant;
+﻿using TreasureMap.Constant;
 
 namespace TreasureMap.Models
 {
@@ -19,16 +14,6 @@ namespace TreasureMap.Models
             Type = type;
             TreasureCount = treasureCount;
             HasAdventurer = hasAdventurer;
-        }
-
-        public override string ToString()
-        {
-            return Type switch
-            {
-                CellType.Mountain => "M",
-                CellType.Treasure => $"T({TreasureCount})",
-                _ => "."
-            };
         }
     }
 
