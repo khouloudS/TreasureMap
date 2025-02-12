@@ -23,6 +23,11 @@ jobs:
     - name: Build
       working-directory: TreasureMap
       run: dotnet build --no-restore
+    - name: Setup Shell Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install bash
     - name: Test
       working-directory: TreasureMap.Tests
+      shell: bash
       run: dotnet test --no-build --verbosity normal --logger "trx"
