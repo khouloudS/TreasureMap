@@ -31,5 +31,5 @@ jobs:
       working-directory: TreasureMap.Tests
       shell: bash
       run: |
-        pwd
+        ls -R .
         dotnet test --no-build --verbosity normal --logger "trx"
