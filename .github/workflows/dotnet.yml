@@ -27,5 +27,5 @@ jobs:
       working-directory: TreasureMap
       run: dotnet build --no-restore
     - name: Test
-      working-directory: TreasureMap
+      working-directory: TreasureMap.Tests
       run: dotnet test --no-build --verbosity normal
