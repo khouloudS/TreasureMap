@@ -64,35 +64,40 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
 
-  release:
-    needs: create_tag
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+release:
+  needs: create_tag
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: published-executable
-          path: ./artifacts
+    - name: Download Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: published-executable
+        path: ./artifacts
 
-      - name: Create Directory for Assets
-        run: mkdir -p ./release-assets
+    - name: Create Directory for Release Assets
+      run: mkdir -p ./release-assets
 
-      - name: Move Artifacts to Release Folder
-        run: mv ./artifacts/* ./release-assets/
+    - name: Move Artifacts to Release Folder
+      run: mv ./artifacts/* ./release-assets/
 
-      - name: List Release Folder Contents
-        run: ls -al ./release-assets
+    - name: Zip Release Folder
+      run: |
+        cd ./release-assets
+        zip -r ../release-assets.zip ./*
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ needs.create_tag.outputs.version }}
-          name: Release ${{ needs.create_tag.outputs.version }}
-          body: "Automatic release after merging into main."
-          draft: false
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./release-assets/*
+    - name: List Release Folder Contents
+      run: ls -al ./release-assets
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ needs.create_tag.outputs.version }}
+        name: Release ${{ needs.create_tag.outputs.version }}
+        body: "Automatic release after merging into main."
+        draft: false
+        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        files: ./release-assets.zip
