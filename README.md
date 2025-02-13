@@ -2,6 +2,11 @@
 
 This project implements a simulation game where adventurers explore a map, collect treasures, and avoid obstacles like mountains. The game reads a map file, moves adventurers according to a set of instructions, and outputs the results.
 
+# Assumptions
+While solving this problem, the following assumptions were made:
+1. At the beginning, an adventurer cannot start on a position occupied by a mountain.
+2. Initially, each adventurer starts in a unique position, ensuring no two adventurers share the same starting position.
+
 ## Solution Overview
 
 1. **Main Components**:
