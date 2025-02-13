@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,11 +35,18 @@ jobs:
         run: |
           dotnet publish --configuration Release --output ./publish --runtime win-x64 --self-contained true
 
+      - name: List Publish Directory (Debugging)
+        run: ls -al ./publish
+
+      - name: Create a Zip of the Executables
+        run: |
+          zip -r ./publish.zip ./publish  
+
       - name: Upload Executable Artifact
         uses: actions/upload-artifact@v4
         with:
           name: published-executable
-          path: TreasureMap/publish/
+          path: ./publish.zip
 
   create_tag:
     needs: build
@@ -55,7 +63,6 @@ jobs:
           VERSION="v1.0.$(date +%s)"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "::set-output name=version::$VERSION"
-          echo "Generated version: $VERSION"
 
       - name: Create and Push Git Tag
         run: |
@@ -80,7 +87,7 @@ jobs:
           path: ./artifacts
 
       - name: List Artifact Directory Contents
-        run: ls -al ./artifacts  
+        run: ls -al ./artifacts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
