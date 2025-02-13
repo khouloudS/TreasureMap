@@ -40,4 +40,20 @@ jobs:
       with:
         name: published-executable
         path: TreasureMap/publish/
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: published-executable
+          path: ./artifacts
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifacts/*
+          token: ${{ secrets.GH_PAT }}
 
