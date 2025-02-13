@@ -1,4 +1,4 @@
-name: .NET
+name: .NET Release
 
 on:
   push:
@@ -6,43 +6,43 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x 
-    - name: Restore dependencies
-      working-directory: TreasureMap
-      run: dotnet restore
-    - name: Build
-      working-directory: TreasureMap
-      run: dotnet build --no-restore
-    - name: Setup Shell Environment
-      run: |
-        sudo apt-get update
-        sudo apt-get install bash
-    - name: Test
-      working-directory: TreasureMap/TreasureMap.Tests
-      shell: bash
-      run: dotnet test --no-build --verbosity normal --logger "trx"
-    - name: Publish Executable for Windows
-      working-directory: TreasureMap
-      run: |
-        dotnet publish --configuration Release --output ./publish --runtime win-x64 --self-contained true
-    - name: Upload Executable Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: published-executable
-        path: TreasureMap/publish/
-  create_release:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        working-directory: TreasureMap
+        run: dotnet restore
+
+      - name: Build
+        working-directory: TreasureMap
+        run: dotnet build --no-restore
+
+      - name: Test
+        working-directory: TreasureMap/TreasureMap.Tests
+        run: dotnet test --no-build --verbosity normal --logger "trx"
+
+      - name: Publish Executable for Windows
+        working-directory: TreasureMap
+        run: |
+          dotnet publish --configuration Release --output ./publish --runtime win-x64 --self-contained true
+
+      - name: Upload Executable Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-executable
+          path: TreasureMap/publish/
+
+  create_tag:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Generate Version Tag
@@ -50,30 +50,40 @@ jobs:
         run: |
           VERSION="v1.0.$(date +%s)"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Tagging release with version: $VERSION"
+          echo "Generated version: $VERSION"
+
+      - name: Create and Push Git Tag
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git tag $VERSION
+          git push origin $VERSION
+        env:
+          VERSION: ${{ env.VERSION }}
+
+  release:
+    needs: create_tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Latest Tag
+        id: get_version
+        run: echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: published-executable
+          path: ./artifacts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.VERSION }}
           release_name: Release ${{ env.VERSION }}
-          body: "Automatic release generated after merging to main."
+          body: "Automatic release after merging into main."
           draft: false
           prerelease: false
-          token: ${{ secrets.GH_PAT }}
-
-  upload_release_assets:
-    needs: create_release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: published-executable
-          path: ./artifacts
-
-      - name: Upload Executable to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ./artifacts/*
           token: ${{ secrets.GH_PAT }}
