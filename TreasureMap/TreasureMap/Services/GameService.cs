@@ -6,7 +6,7 @@ using TreasureMap.Models;
 namespace TreasureMap.Services
 {
 
-    public class GameService: IGameService
+    public class GameService : IGameService
     {
         private readonly IMovementService _movementService;
         private readonly IMapService _mapService;
@@ -76,7 +76,7 @@ namespace TreasureMap.Services
                                 Orientation = parts[4],
                                 Path = parts[5]
                             };
-
+                            adventurersList.Add(adventurer);
                             if (map != null && !map[adventurer.Row, adventurer.Col].HasAdventurer
                                 && map[adventurer.Row, adventurer.Col].Type != CellType.Mountain)
                             {
@@ -87,7 +87,6 @@ namespace TreasureMap.Services
                                     map[adventurer.Row, adventurer.Col].TreasureCount--;
                                 }
                                 maxPath = Math.Max(maxPath, adventurer.Path.Length);
-                                adventurersList.Add(adventurer);
                             }
                             break;
                     }
@@ -153,12 +152,16 @@ namespace TreasureMap.Services
 
                     }
                 }
-                writer.WriteLine("# {A comme Aventurier} - {Nom de l’aventurier} - {Axe horizontal} - {Axe vertical} - {Orientation} - {Nb. trésors ramassés}");
 
-                foreach (var adventurer in gameData.Adventurers)
+                if (gameData.Adventurers.Any())
                 {
-                    writer.WriteLine($"A - {adventurer.Name} - {adventurer.Col} - {adventurer.Row} - {adventurer.Orientation} - {adventurer.TotalTreasure}");
+                    writer.WriteLine("# {A comme Aventurier} - {Nom de l’aventurier} - {Axe horizontal} - {Axe vertical} - {Orientation} - {Nb. trésors ramassés}");
+                    foreach (var adventurer in gameData.Adventurers)
+                    {
+                        writer.WriteLine($"A - {adventurer.Name} - {adventurer.Col} - {adventurer.Row} - {adventurer.Orientation} - {adventurer.TotalTreasure}");
+                    }
                 }
+
             }
 
             Console.WriteLine($"Results saved to: {outputPath}");
