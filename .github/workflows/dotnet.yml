@@ -2,7 +2,7 @@ name: .NET Release
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ] 
 
 permissions:
   contents: write
@@ -44,6 +44,8 @@ jobs:
   create_tag:
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -51,8 +53,9 @@ jobs:
       - name: Generate Version Tag
         id: version
         run: |
-          VERSION="v1.0.$(date +%s)"
+          VERSION="v1.0.$(date +%s)" 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "::set-output name=version::$VERSION"
           echo "Generated version: $VERSION"
 
       - name: Create and Push Git Tag
@@ -62,7 +65,7 @@ jobs:
           git tag $VERSION
           git push origin $VERSION
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ steps.version.outputs.version }}
 
   release:
     needs: create_tag
@@ -70,10 +73,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Fetch Latest Tag
-        id: get_version
-        run: echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
 
       - name: Download Artifact
         uses: actions/download-artifact@v4
@@ -84,9 +83,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.VERSION }}
-          release_name: Release ${{ env.VERSION }}
+          tag_name: ${{ needs.create_tag.outputs.version }}  
+          name: Release ${{ needs.create_tag.outputs.version }}
           body: "Automatic release after merging into main."
           draft: false
           prerelease: false
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }} 
