@@ -3,8 +3,6 @@ name: .NET
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
@@ -40,10 +38,33 @@ jobs:
       with:
         name: published-executable
         path: TreasureMap/publish/
-  release:
+  create_release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate Version Tag
+        id: version
+        run: |
+          VERSION="v1.0.$(date +%s)"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Tagging release with version: $VERSION"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          body: "Automatic release generated after merging to main."
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GH_PAT }}
+
+  upload_release_assets:
+    needs: create_release
+    runs-on: ubuntu-latest
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -51,9 +72,8 @@ jobs:
           name: published-executable
           path: ./artifacts
 
-      - name: Upload to GitHub Release
+      - name: Upload Executable to Release
         uses: softprops/action-gh-release@v1
         with:
           files: ./artifacts/*
           token: ${{ secrets.GH_PAT }}
-
