@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 permissions:
-  contents: write
+  contents: write 
 
 jobs:
   build:
@@ -34,19 +34,28 @@ jobs:
         working-directory: TreasureMap
         run: |
           dotnet publish --configuration Release --output ./publish --runtime win-x64 --self-contained true
-
-      - name: List Publish Directory (Debugging)
-        run: ls -al ./publish
+          
+      - name: List Files After Publish
+        run: |
+          echo "Listing contents of the current directory:"
+          ls -al
+          echo "Listing contents of the publish directory:"
+          ls -al ./publish || echo "Publish directory does not exist"  # Check if ./publish exists
 
       - name: Create a Zip of the Executables
         run: |
-          zip -r ./publish.zip ./publish  
+          if [ -d "./publish" ]; then
+            zip -r ./publish.zip ./publish
+          else
+            echo "Publish directory not found, skipping zip step"
+            exit 1
+          fi
 
       - name: Upload Executable Artifact
         uses: actions/upload-artifact@v4
         with:
           name: published-executable
-          path: ./publish.zip
+          path: ./publish.zip 
 
   create_tag:
     needs: build
@@ -87,7 +96,7 @@ jobs:
           path: ./artifacts
 
       - name: List Artifact Directory Contents
-        run: ls -al ./artifacts
+        run: ls -al ./artifacts 
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -98,4 +107,4 @@ jobs:
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./artifacts/*
+          files: ./artifacts/* 
