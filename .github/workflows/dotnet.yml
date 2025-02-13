@@ -78,18 +78,18 @@ jobs:
           path: ./artifacts
 
       - name: Create Directory for Assets
-        run: mkdir -p ./release-assets
+        run: mkdir -p ./release-treasure-map
 
       - name: Move Artifacts to Release Folder
-        run: mv ./artifacts/* ./release-assets/
+        run: mv ./artifacts/* ./release-treasure-map/
 
       - name: Zip Release Folder
         run: |
-          cd ./release-assets
-          zip -r ../release-assets.zip ./*
+          cd ./release-treasure-map
+          zip -r ../release-treasure-map.zip ./*
 
       - name: List Release Folder Contents
-        run: ls -al ./release-assets
+        run: ls -al ./release-treasure-map
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -100,4 +100,4 @@ jobs:
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./release-assets.zip
+          files: ./release-treasure-map.zip
