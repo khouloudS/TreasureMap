@@ -2,11 +2,10 @@ name: .NET Release
 
 on:
   push:
-    branches: [ "main" ] 
+    branches: [ "main" ]
 
 permissions:
   contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -53,7 +52,7 @@ jobs:
       - name: Generate Version Tag
         id: version
         run: |
-          VERSION="v1.0.$(date +%s)" 
+          VERSION="v1.0.$(date +%s)"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "::set-output name=version::$VERSION"
           echo "Generated version: $VERSION"
@@ -80,12 +79,16 @@ jobs:
           name: published-executable
           path: ./artifacts
 
+      - name: List Artifact Directory Contents
+        run: ls -al ./artifacts  
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ needs.create_tag.outputs.version }}  
+          tag_name: ${{ needs.create_tag.outputs.version }}
           name: Release ${{ needs.create_tag.outputs.version }}
           body: "Automatic release after merging into main."
           draft: false
           prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }} 
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./artifacts/*
