@@ -77,8 +77,14 @@ jobs:
           name: published-executable
           path: ./artifacts
 
-      - name: List Artifact Directory Contents
-        run: ls -al ./artifacts  
+      - name: Create Directory for Assets
+        run: mkdir -p ./release-assets
+
+      - name: Move Artifacts to Release Folder
+        run: mv ./artifacts/* ./release-assets/
+
+      - name: List Release Folder Contents
+        run: ls -al ./release-assets
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -89,4 +95,4 @@ jobs:
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./artifacts/*
+          files: ./release-assets/*
